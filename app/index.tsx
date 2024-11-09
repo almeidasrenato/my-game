@@ -1,12 +1,12 @@
 import React from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import { MusicGame } from '@/components/initMusicGame/MusicGame'
+import { MusicGameComponent } from '@/components/initMusicGameComponent/MusicGameComponent'
 
 export default function Page() {
   return (
     <View style={styles.container}>
-      <MusicGame createMode={false} />
+      <MusicGameComponent createMode={false} />
     </View>
   )
 }

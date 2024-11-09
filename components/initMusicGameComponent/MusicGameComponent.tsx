@@ -1,6 +1,6 @@
-import { StyleSheet, View, Text, Pressable, PixelRatio } from 'react-native'
-import GameHeader from './MusicGameHeader'
 import { useRef, useState } from 'react'
+import { StyleSheet, View } from 'react-native'
+
 import Animated, {
   cancelAnimation,
   useAnimatedStyle,
@@ -11,24 +11,33 @@ import Animated, {
   configureReanimatedLogger,
   ReanimatedLogLevel,
 } from 'react-native-reanimated'
-import CircleClick from './MusicGameCircle'
+
 import moment from 'moment'
+
+import { Audio } from 'expo-av'
+
+import GameHeader from './MusicGameHeader'
+import CircleClick from './MusicGameCircle'
 import GameFooter from './MusicGameFooter'
 import { showObject } from '@/Mocks/showObjectMock'
 import { gameConfig } from '@/utils/game'
 
-import { Audio } from 'expo-av'
+//! Atualizar player futuramente
+// import { useAudioPlayer } from 'expo-audio'
+//!---------------------------
 
+//! Disable strict mode
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
-  strict: false, //! Disable strict mode
+  strict: false,
 })
+//!---------------------------
 
 type MusicGameProps = {
   createMode: boolean
 }
 
-export const MusicGame = ({ createMode }: MusicGameProps) => {
+export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const [showObject1, setShowObject1] = useState(showObject)
   const [startAnimated, onChangeStartAnimated] = useState(false)
   const [time, setTime] = useState(0)
@@ -39,6 +48,16 @@ export const MusicGame = ({ createMode }: MusicGameProps) => {
   const Ref = useRef(null)
   const RefTimer = useRef(null)
   const SoundRef = useRef(null)
+
+  //! Atualizar player futuramente
+  // const player = useAudioPlayer(
+  //   require('../../assets/music/eu-me-rendo-vocal-livre.mp3')
+  // )
+
+  // const player = useAudioPlayer({
+  //   uri: require('@/assets/music/eu-me-rendo-vocal-livre.mp3'),
+  // })
+  //!---------------------------
 
   const animeLinePosition = useSharedValue(gameConfig.PADDING_LINE_ANIMATION)
 
@@ -85,6 +104,15 @@ export const MusicGame = ({ createMode }: MusicGameProps) => {
 
     console.log('Playing Sound')
     await sound.playAsync()
+
+    //! Atualizar player futuramente
+    // if (!pause) {
+    //   player.pause()
+    // }
+
+    // console.log('Loading Sound')
+    // player.play()
+    //!---------------------------
   }
 
   const onClickReset = (continueTimer) => {

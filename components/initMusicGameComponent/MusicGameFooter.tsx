@@ -16,7 +16,7 @@ export default function GameFooter({ footerHeightSize, time }) {
           color: 'white',
         }}
       >
-        {`Time: ${time}            Repet: `}
+        {`Time: ${time}`}
       </Text>
     </View>
   )
