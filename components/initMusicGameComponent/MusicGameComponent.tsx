@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import Animated, {
@@ -13,13 +13,12 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import moment from 'moment'
-
 import { Audio } from 'expo-av'
 
 import GameHeader from './MusicGameHeader'
 import CircleClick from './MusicGameCircle'
 import GameFooter from './MusicGameFooter'
-import { showObject } from '@/Mocks/showObjectMock'
+import { showObjectArray } from '@/Mocks/showObjectMock'
 import { gameConfig } from '@/utils/game'
 
 //! Atualizar player futuramente
@@ -38,7 +37,7 @@ type MusicGameProps = {
 }
 
 export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
-  const [showObject1, setShowObject1] = useState(showObject)
+  const [showObject, setShowObject] = useState(showObjectArray)
   const [startAnimated, onChangeStartAnimated] = useState(false)
   const [time, setTime] = useState(0)
 
@@ -48,6 +47,8 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const Ref = useRef(null)
   const RefTimer = useRef(null)
   const SoundRef = useRef(null)
+
+  useEffect(() => {}, [createMode])
 
   //! Atualizar player futuramente
   // const player = useAudioPlayer(
@@ -62,7 +63,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const animeLinePosition = useSharedValue(gameConfig.PADDING_LINE_ANIMATION)
 
   const ObjectClickVisibility = () => {
-    let returnObjectFilter = showObject1.filter(
+    let returnObjectFilter = showObject.filter(
       (item) =>
         time >= item.show - gameConfig.ANIMATION_LINE_TIME &&
         time <= item.show + gameConfig.ANIMATION_LINE_TIME / 2
@@ -82,27 +83,27 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
             AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
             CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
             returnObjectFilter={returnObjectFilter}
-            showObject1={showObject1}
-            setShowObject1={setShowObject1}
+            showObject={showObject}
+            setShowObject={setShowObject}
           />
         )
       }
     }
   }
 
-  async function playSound(pause) {
+  async function playSound(pause: boolean) {
     if (!pause) {
       return SoundRef.current.unloadAsync()
     }
 
-    console.log('Loading Sound')
+    console.log('Loading Sound ======>')
     const { sound } = await Audio.Sound.createAsync(
       require('../../assets/music/eu-me-rendo-vocal-livre.mp3')
     )
 
     SoundRef.current = sound
 
-    console.log('Playing Sound')
+    console.log('Playing Sound ======>')
     await sound.playAsync()
 
     //! Atualizar player futuramente
@@ -115,7 +116,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
     //!---------------------------
   }
 
-  const onClickReset = (continueTimer) => {
+  const onClickReset = (continueTimer: boolean) => {
     if (continueTimer) {
       clearInterval(Ref.current)
       playSound(false)
@@ -125,23 +126,22 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
     playSound(true)
 
-    if (RefTimer.value) {
-      RefTimer.value = moment(new Date()).subtract(time)
+    if (RefTimer.current) {
+      RefTimer.current = moment(new Date()).subtract(time)
     } else {
-      RefTimer.value = moment(new Date())
+      RefTimer.current = moment(new Date())
     }
 
     const id = setInterval(() => {
       const end = moment(new Date())
-      const diff = end.diff(RefTimer.value)
+      const diff = end.diff(RefTimer.current)
 
       setTime(diff)
-      // }, 100)
     }, 10)
     Ref.current = id
   }
 
-  const startAnimationFunction = (pause) => {
+  const startAnimationFunction = (pause: boolean) => {
     if (pause) {
       cancelAnimation(animeLinePosition)
       return
@@ -159,12 +159,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
         }
       ),
       false,
-      true,
-      (finished) => {
-        const resultStr = finished
-          ? 'All repeats are completed'
-          : 'withRepeat cancelled'
-      }
+      true
     )
   }
 
@@ -174,39 +169,45 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
     }
   })
 
-  const createModeRender = () => {
-    const count = useRef(0)
+  const CreateModeRender = useCallback(
+    ({ timeComponent }: { timeComponent: number }) => {
+      const count = useRef(0)
 
-    return (
-      <View
-        style={{
-          position: 'absolute',
-          height: '100%',
-          width: '100%',
-          flexDirection: 'row',
-        }}
-      >
-        {Array.from({ length: 100 }).map((item, index) => (
-          <View
-            key={index}
-            style={{
-              height: gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE,
-              width: '1%',
-              backgroundColor: 'blue',
-            }}
-            onTouchStart={() => {
-              return console.log(`{
+      useEffect(() => {}, [])
+
+      return (
+        <View
+          style={{
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            flexDirection: 'row',
+          }}
+        >
+          {Array.from({ length: 100 }).map((item, index) => (
+            <View
+              key={index}
+              style={{
+                height: gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE,
+                width: '1%',
+                backgroundColor: 'blue',
+              }}
+              onTouchStart={() => {
+                return console.log(`{
               id: ${count.current++},
-              show: ${time},
+              show: ${timeComponent},
               click: false,
               positionLeft: ${index},
             },`)
-            }}
-          ></View>
-        ))}
-      </View>
-    )
-  }
+              }}
+            />
+          ))}
+        </View>
+      )
+    },
+    []
+  )
+
   return (
     <View style={styles.percentContainer}>
       <GameHeader
@@ -219,7 +220,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
       />
 
       <View style={styles.gameField}>
-        {createMode && createModeRender()}
+        {createMode && <CreateModeRender timeComponent={time} />}
         {ObjectClickVisibility()}
         <Animated.View style={[styles.line, animatedStyles]} />
       </View>

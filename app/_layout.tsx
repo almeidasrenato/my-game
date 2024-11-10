@@ -36,7 +36,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          // autoHideHomeIndicator: true,
+          autoHideHomeIndicator: true,
         }}
       >
         <Stack.Screen name="index" />

@@ -11,8 +11,8 @@ export default function CircleClick({
   AnimationLineTime,
   CIRCLE_SIZE,
   returnObjectFilter,
-  showObject1,
-  setShowObject1,
+  showObject,
+  setShowObject,
 }) {
   const circleStyle = (positionTop, positionLeft, click) => {
     return {
@@ -32,17 +32,17 @@ export default function CircleClick({
   }
 
   const actionClick = (lineAndCircle, itemId) => {
-    console.log('itemId', itemId)
+    console.log('actionClick itemId ======>', itemId)
 
     if (lineAndCircle) {
-      let newTeste = showObject1.map((itemT) => {
+      let newTeste = showObject.map((itemT) => {
         if (itemT.id === itemId) {
           itemT.click = true
           return { ...itemT }
         }
         return { ...itemT }
       })
-      setShowObject1(newTeste)
+      setShowObject(newTeste)
     }
   }
 
@@ -88,7 +88,9 @@ export default function CircleClick({
           onTouchStart={() => actionClick(lineAndCircleReturn, item.id)}
           key={item.id}
           style={circleStyle(positionTopReturn, item.positionLeft, item.click)}
-        ></View>
+        >
+          <></>
+        </View>
       )
     } else {
       return (
@@ -96,7 +98,9 @@ export default function CircleClick({
           onTouchStart={() => actionClick(lineAndCircleReturn, item.id)}
           key={item.id}
           style={circleStyle(positionTopReturn, item.positionLeft, item.click)}
-        ></View>
+        >
+          <></>
+        </View>
       )
     }
   })
