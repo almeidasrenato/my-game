@@ -25,7 +25,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
     useState(undefined)
 
   const Ref = useRef(null)
-  const RefTimer = useRef(null)
 
   const downLineDirection = useRef(true)
   const lineAnimationPosition = useRef(gameConfig.PADDING_LINE_ANIMATION)
@@ -82,12 +81,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
     }
 
     playSound(true)
-
-    if (RefTimer.current) {
-      RefTimer.current = moment(new Date()).subtract(time)
-    } else {
-      RefTimer.current = moment(new Date())
-    }
 
     const id = setInterval(() => {
       setTime(Math.round(player.currentTime * 1000))

@@ -157,6 +157,12 @@ export default function CircleClick({
 
           actionClick(lineAndCircleReturn, item.id)
         }}
+        // onTouchStart={() => {
+        //   console.log('onTouchStart')
+        // }}
+        // onTouchEnd={() => {
+        //   console.log('onTouchEnd')
+        // }}
         style={circleStyle(positionTopReturn, item.positionLeft, item)}
       >
         <></>

@@ -16,7 +16,7 @@ export type ShowObject = {
 export const showObjectArray: ShowObject[] = [
   // {
   //   id: 0,
-  //   show: 12594,
+  //   show: 6000,
   //   click: false,
   //   positionLeft: 17,
   //   miss: false,
