@@ -1,16 +1,5 @@
-import { useRef, useState, useEffect, useCallback } from 'react'
+import { useRef, useState, useEffect, useCallback, memo } from 'react'
 import { StyleSheet, View } from 'react-native'
-
-import Animated, {
-  cancelAnimation,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-  Easing,
-  configureReanimatedLogger,
-  ReanimatedLogLevel,
-} from 'react-native-reanimated'
 
 import moment from 'moment'
 import { Audio } from 'expo-av'
@@ -22,14 +11,12 @@ import { showObjectArray } from '@/Mocks/showObjectMock'
 import { gameConfig } from '@/utils/game'
 
 //! Atualizar player futuramente
+
 // import { useAudioPlayer } from 'expo-audio'
 //!---------------------------
 
 //! Disable strict mode
-configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false,
-})
+
 //!---------------------------
 
 type MusicGameProps = {
@@ -37,7 +24,8 @@ type MusicGameProps = {
 }
 
 export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
-  const [showObject, setShowObject] = useState(showObjectArray)
+  const showObjectRef = useRef(showObjectArray)
+
   const [startAnimated, onChangeStartAnimated] = useState(false)
   const [time, setTime] = useState(0)
 
@@ -47,6 +35,9 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const Ref = useRef(null)
   const RefTimer = useRef(null)
   const SoundRef = useRef(null)
+
+  const downLineDirection = useRef(true)
+  const lineAnimationPosition = useRef(gameConfig.PADDING_LINE_ANIMATION)
 
   useEffect(() => {}, [createMode])
 
@@ -60,10 +51,8 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   // })
   //!---------------------------
 
-  const animeLinePosition = useSharedValue(gameConfig.PADDING_LINE_ANIMATION)
-
   const ObjectClickVisibility = () => {
-    let returnObjectFilter = showObject.filter(
+    let returnObjectFilter = showObjectRef.current.filter(
       (item) =>
         time >= item.show - gameConfig.ANIMATION_LINE_TIME &&
         time <= item.show + gameConfig.ANIMATION_LINE_TIME / 2
@@ -78,13 +67,13 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
       } else {
         return (
           <CircleClick
-            animeLinePosition={animeLinePosition.value}
+            animeLinePosition={lineAnimationPosition.current}
             gameFieldScreenHeightSize={gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE}
             AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
+            time={time}
             CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
             returnObjectFilter={returnObjectFilter}
-            showObject={showObject}
-            setShowObject={setShowObject}
+            showObjectRef={showObjectRef.current}
           />
         )
       }
@@ -136,38 +125,60 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
       const end = moment(new Date())
       const diff = end.diff(RefTimer.current)
 
+      // console.log('diff', diff)
+      // console.log('SoundRef.current', SoundRef.current)
+
+      //! Futuramente atualizar pelo tempo do audio
       setTime(diff)
-    }, 10)
+    }, 16.6666667)
+
     Ref.current = id
   }
 
-  const startAnimationFunction = (pause: boolean) => {
-    if (pause) {
-      cancelAnimation(animeLinePosition)
-      return
+  const verifyLinePositionTop = () => {
+    const paddingLineAnimation = gameConfig.PADDING_LINE_ANIMATION
+
+    // //!Lembrar de habilitar
+    // if (!startAnimated) {
+    //   return paddingLineAnimation
+    // }
+
+    const animeLinePositionMaxHeight = gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT
+
+    const animationLineTime = gameConfig.ANIMATION_LINE_TIME
+
+    const percorredRange = animeLinePositionMaxHeight - paddingLineAnimation
+
+    const calcMoveLine =
+      percorredRange / (59.9999999 * (animationLineTime / 1000))
+
+    const ciclo = animationLineTime * 2
+    const metadeCiclo = ciclo / 2
+
+    if (downLineDirection.current) {
+      lineAnimationPosition.current += calcMoveLine
+
+      if (time % ciclo >= metadeCiclo) {
+        downLineDirection.current = false
+        lineAnimationPosition.current = animeLinePositionMaxHeight
+      }
+    } else {
+      lineAnimationPosition.current -= calcMoveLine
+
+      if (time % ciclo < metadeCiclo) {
+        downLineDirection.current = true
+        lineAnimationPosition.current = paddingLineAnimation
+      }
     }
 
-    animeLinePosition.value = withRepeat(
-      withTiming(
-        gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT,
-        { duration: gameConfig.ANIMATION_LINE_TIME, easing: Easing.linear },
-        (finished, currentValue) => {
-          if (finished) {
-          } else {
-            animeLinePosition.value = gameConfig.PADDING_LINE_ANIMATION
-          }
-        }
-      ),
-      false,
-      true
-    )
+    return lineAnimationPosition.current
   }
 
-  const animatedStyles = useAnimatedStyle(() => {
+  const animatedStyleCustom = () => {
     return {
-      top: animeLinePosition.value,
+      top: verifyLinePositionTop(),
     }
-  })
+  }
 
   const CreateModeRender = useCallback(
     ({ timeComponent }: { timeComponent: number }) => {
@@ -195,9 +206,10 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
               onTouchStart={() => {
                 return console.log(`{
               id: ${count.current++},
-              show: ${timeComponent},
+              show: ${timeComponent - 50},
               click: false,
               positionLeft: ${index},
+              miss: false
             },`)
               }}
             />
@@ -213,7 +225,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
       <GameHeader
         startAnimated={startAnimated}
         onChangeStartAnimated={onChangeStartAnimated}
-        startAnimationFunction={startAnimationFunction}
         headerHeightSize={gameConfig.HEADER_HEIGHT_SIZE}
         onClickReset={onClickReset}
         setTime={setTime}
@@ -221,8 +232,11 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
       <View style={styles.gameField}>
         {createMode && <CreateModeRender timeComponent={time} />}
+
         {ObjectClickVisibility()}
-        <Animated.View style={[styles.line, animatedStyles]} />
+
+        {/* <Animated.View style={[styles.line, animatedStyles]} /> */}
+        <View style={[styles.line, animatedStyleCustom()]} />
       </View>
 
       <GameFooter
@@ -255,5 +269,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: gameConfig.LINE_HEIGHT_SIZE,
     backgroundColor: gameConfig.LINE_COLOR,
+
+    //!Adicionado agora
+    // position: 'absolute',
   },
 })

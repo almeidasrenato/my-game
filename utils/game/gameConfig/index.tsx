@@ -4,7 +4,8 @@ const returnPxByPercent = (percent, totalValue) => {
   return totalValue * (percent / 100)
 }
 
-const ANIMATION_LINE_TIME = 2000
+const ANIMATION_LINE_TIME = 1000
+// const ANIMATION_LINE_TIME = 5000
 const CIRCLE_SIZE = PixelRatio.getPixelSizeForLayoutSize(28)
 
 const SCREEN_HEIGHT_SIZE = Dimensions.get('screen').height

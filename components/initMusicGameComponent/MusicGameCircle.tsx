@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dimensions, View } from 'react-native'
+import { Dimensions, View, Text } from 'react-native'
 
 const returnPxByPercent = (percent, totalValue) => {
   return totalValue * (percent / 100)
@@ -9,16 +9,27 @@ export default function CircleClick({
   animeLinePosition,
   gameFieldScreenHeightSize,
   AnimationLineTime,
+  time,
   CIRCLE_SIZE,
   returnObjectFilter,
-  showObject,
-  setShowObject,
+  showObjectRef,
 }) {
-  const circleStyle = (positionTop, positionLeft, click) => {
+  const circleStyle = (positionTop, positionLeft, item) => {
+    let color = '#f2f3f6'
+
+    if (item.click) {
+      color = 'transparent'
+    }
+
+    if (!item.click && item.miss) {
+      // color = 'pink'
+      color = 'transparent'
+    }
+
     return {
       width: CIRCLE_SIZE,
       height: CIRCLE_SIZE,
-      backgroundColor: click ? '#f2f3f6' : 'red',
+      backgroundColor: color,
       position: 'absolute',
       left: returnPxByPercent(
         positionLeft,
@@ -33,20 +44,23 @@ export default function CircleClick({
 
   const actionClick = (lineAndCircle, itemId) => {
     console.log('actionClick itemId ======>', itemId)
+    console.log('actionClick lineAndCircle ======>', lineAndCircle)
 
     if (lineAndCircle) {
-      let newTeste = showObject.map((itemT) => {
+      let newTeste = showObjectRef.map((itemT) => {
         if (itemT.id === itemId) {
           itemT.click = true
           return { ...itemT }
         }
         return { ...itemT }
       })
-      setShowObject(newTeste)
+
+      showObjectRef.current = newTeste
     }
   }
 
   const lineAndCircle = (positionLineByCircleClick, positionTopReturn) => {
+    //! Aqui verifica se a linha está no range campo clicavel ou não
     if (
       positionLineByCircleClick - CIRCLE_SIZE <= positionTopReturn &&
       positionLineByCircleClick >= positionTopReturn
@@ -82,26 +96,73 @@ export default function CircleClick({
       positionTopReturn
     )
 
-    if (item.click) {
+    let tolerancePercent = 10 / 100
+
+    if (time >= item.show + tolerancePercent * AnimationLineTime) {
+      let updateObjectRef = showObjectRef.map((itemT) => {
+        if (itemT.id === item.id) {
+          itemT.miss = true
+          return { ...itemT }
+        }
+        return { ...itemT }
+      })
+
+      showObjectRef.current = updateObjectRef
+    }
+
+    if (item.miss && !item.click) {
       return (
         <View
-          onTouchStart={() => actionClick(lineAndCircleReturn, item.id)}
-          key={item.id}
-          style={circleStyle(positionTopReturn, item.positionLeft, item.click)}
+          key={index}
+          style={circleStyle(positionTopReturn, item.positionLeft, item)}
         >
-          <></>
-        </View>
-      )
-    } else {
-      return (
-        <View
-          onTouchStart={() => actionClick(lineAndCircleReturn, item.id)}
-          key={item.id}
-          style={circleStyle(positionTopReturn, item.positionLeft, item.click)}
-        >
-          <></>
+          <>
+            <Text
+              style={{
+                color: 'red',
+              }}
+            >
+              Miss
+            </Text>
+          </>
         </View>
       )
     }
+
+    if (item.click) {
+      return (
+        <View
+          key={index}
+          style={circleStyle(positionTopReturn, item.positionLeft, item)}
+        >
+          <>
+            <Text
+              style={{
+                color: 'green',
+              }}
+            >
+              Hit
+            </Text>
+          </>
+        </View>
+      )
+    }
+
+    return (
+      <View
+        key={index}
+        onTouchStart={() => {
+          if (item.click) return
+          if (item.miss) return
+
+          actionClick(lineAndCircleReturn, item.id)
+        }}
+        style={circleStyle(positionTopReturn, item.positionLeft, item)}
+      >
+        <></>
+      </View>
+    )
+
+    //!---------------------------
   })
 }

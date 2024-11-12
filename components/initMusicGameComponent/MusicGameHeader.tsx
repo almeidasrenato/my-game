@@ -4,7 +4,7 @@ import { View, PixelRatio, Pressable } from 'react-native'
 export default function GameHeader({
   startAnimated,
   onChangeStartAnimated,
-  startAnimationFunction,
+  // startAnimationFunction,
   headerHeightSize,
   onClickReset,
   setTime,
@@ -13,10 +13,10 @@ export default function GameHeader({
     setTime(0)
 
     if (startAnimated) {
-      startAnimationFunction(true)
+      // startAnimationFunction(true)
       onClickReset(true)
     } else {
-      startAnimationFunction()
+      // startAnimationFunction()
       onClickReset(false)
     }
 
