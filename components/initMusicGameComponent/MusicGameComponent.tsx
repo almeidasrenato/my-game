@@ -2,7 +2,6 @@ import { useRef, useState, useEffect, useCallback, memo } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import moment from 'moment'
-import { Audio } from 'expo-av'
 
 import GameHeader from './MusicGameHeader'
 import CircleClick from './MusicGameCircle'
@@ -10,14 +9,7 @@ import GameFooter from './MusicGameFooter'
 import { showObjectArray } from '@/Mocks/showObjectMock'
 import { gameConfig } from '@/utils/game'
 
-//! Atualizar player futuramente
-
-// import { useAudioPlayer } from 'expo-audio'
-//!---------------------------
-
-//! Disable strict mode
-
-//!---------------------------
+import { useAudioPlayer } from 'expo-audio'
 
 type MusicGameProps = {
   createMode: boolean
@@ -34,21 +26,15 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
   const Ref = useRef(null)
   const RefTimer = useRef(null)
-  const SoundRef = useRef(null)
 
   const downLineDirection = useRef(true)
   const lineAnimationPosition = useRef(gameConfig.PADDING_LINE_ANIMATION)
 
   useEffect(() => {}, [createMode])
 
-  //! Atualizar player futuramente
-  // const player = useAudioPlayer(
-  //   require('../../assets/music/eu-me-rendo-vocal-livre.mp3')
-  // )
-
-  // const player = useAudioPlayer({
-  //   uri: require('@/assets/music/eu-me-rendo-vocal-livre.mp3'),
-  // })
+  const player = useAudioPlayer(
+    require('@/assets/music/eu-me-rendo-vocal-livre.mp3')
+  )
   //!---------------------------
 
   const ObjectClickVisibility = () => {
@@ -82,27 +68,9 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
   async function playSound(pause: boolean) {
     if (!pause) {
-      return SoundRef.current.unloadAsync()
+      return player.pause()
     }
-
-    console.log('Loading Sound ======>')
-    const { sound } = await Audio.Sound.createAsync(
-      require('../../assets/music/eu-me-rendo-vocal-livre.mp3')
-    )
-
-    SoundRef.current = sound
-
-    console.log('Playing Sound ======>')
-    await sound.playAsync()
-
-    //! Atualizar player futuramente
-    // if (!pause) {
-    //   player.pause()
-    // }
-
-    // console.log('Loading Sound')
-    // player.play()
-    //!---------------------------
+    player.play()
   }
 
   const onClickReset = (continueTimer: boolean) => {
@@ -122,14 +90,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
     }
 
     const id = setInterval(() => {
-      const end = moment(new Date())
-      const diff = end.diff(RefTimer.current)
-
-      // console.log('diff', diff)
-      // console.log('SoundRef.current', SoundRef.current)
-
-      //! Futuramente atualizar pelo tempo do audio
-      setTime(diff)
+      setTime(Math.round(player.currentTime * 1000))
     }, 16.6666667)
 
     Ref.current = id
@@ -137,11 +98,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
   const verifyLinePositionTop = () => {
     const paddingLineAnimation = gameConfig.PADDING_LINE_ANIMATION
-
-    // //!Lembrar de habilitar
-    // if (!startAnimated) {
-    //   return paddingLineAnimation
-    // }
 
     const animeLinePositionMaxHeight = gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT
 
@@ -235,7 +191,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
         {ObjectClickVisibility()}
 
-        {/* <Animated.View style={[styles.line, animatedStyles]} /> */}
         <View style={[styles.line, animatedStyleCustom()]} />
       </View>
 
@@ -269,8 +224,5 @@ const styles = StyleSheet.create({
     width: '100%',
     height: gameConfig.LINE_HEIGHT_SIZE,
     backgroundColor: gameConfig.LINE_COLOR,
-
-    //!Adicionado agora
-    // position: 'absolute',
   },
 })
