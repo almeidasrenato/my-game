@@ -1,15 +1,14 @@
 import { useRef, useState, useEffect, useCallback, memo } from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import moment from 'moment'
-
 import GameHeader from './MusicGameHeader'
-import CircleClick from './MusicGameCircle'
 import GameFooter from './MusicGameFooter'
+
 import { showObjectArray } from '@/Mocks/showObjectMock'
 import { gameConfig } from '@/utils/game'
 
 import { useAudioPlayer } from 'expo-audio'
+import { verifyRenderObjectClick } from './MusicGameVerifyRender'
 
 type MusicGameProps = {
   createMode: boolean
@@ -18,15 +17,12 @@ type MusicGameProps = {
 export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const showObjectRef = useRef(showObjectArray)
 
-  const [startAnimated, onChangeStartAnimated] = useState(false)
-  const [time, setTime] = useState(0)
-
-  const [verifyObjectFilterObjectClick, setVerifyObjectFilterObjectClick] =
-    useState(undefined)
+  const [startAnimated, onChangeStartAnimated] = useState<boolean>(false)
+  const [time, setTime] = useState<number>(0)
 
   const Ref = useRef(null)
 
-  const downLineDirection = useRef(true)
+  const downLineDirection = useRef<boolean>(true)
   const lineAnimationPosition = useRef(gameConfig.PADDING_LINE_ANIMATION)
 
   useEffect(() => {}, [createMode])
@@ -34,36 +30,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const player = useAudioPlayer(
     require('@/assets/music/eu-me-rendo-vocal-livre.mp3')
   )
-  //!---------------------------
-
-  const ObjectClickVisibility = () => {
-    let returnObjectFilter = showObjectRef.current.filter(
-      (item) =>
-        time >= item.show - gameConfig.ANIMATION_LINE_TIME &&
-        time <= item.show + gameConfig.ANIMATION_LINE_TIME / 2
-    )
-
-    if (returnObjectFilter.length > 0) {
-      if (
-        JSON.stringify(verifyObjectFilterObjectClick) !==
-        JSON.stringify(returnObjectFilter)
-      ) {
-        setVerifyObjectFilterObjectClick(returnObjectFilter)
-      } else {
-        return (
-          <CircleClick
-            animeLinePosition={lineAnimationPosition.current}
-            gameFieldScreenHeightSize={gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE}
-            AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
-            time={time}
-            CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
-            returnObjectFilter={returnObjectFilter}
-            showObjectRef={showObjectRef.current}
-          />
-        )
-      }
-    }
-  }
 
   async function playSound(pause: boolean) {
     if (!pause) {
@@ -90,18 +56,14 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   }
 
   const verifyLinePositionTop = () => {
-    const paddingLineAnimation = gameConfig.PADDING_LINE_ANIMATION
-
-    const animeLinePositionMaxHeight = gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT
-
-    const animationLineTime = gameConfig.ANIMATION_LINE_TIME
-
-    const percorredRange = animeLinePositionMaxHeight - paddingLineAnimation
+    const percorredRange =
+      gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT -
+      gameConfig.PADDING_LINE_ANIMATION
 
     const calcMoveLine =
-      percorredRange / (59.9999999 * (animationLineTime / 1000))
+      percorredRange / (59.9999999 * (gameConfig.ANIMATION_LINE_TIME / 1000))
 
-    const ciclo = animationLineTime * 2
+    const ciclo = gameConfig.ANIMATION_LINE_TIME * 2
     const metadeCiclo = ciclo / 2
 
     if (downLineDirection.current) {
@@ -109,14 +71,15 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
       if (time % ciclo >= metadeCiclo) {
         downLineDirection.current = false
-        lineAnimationPosition.current = animeLinePositionMaxHeight
+        lineAnimationPosition.current =
+          gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT
       }
     } else {
       lineAnimationPosition.current -= calcMoveLine
 
       if (time % ciclo < metadeCiclo) {
         downLineDirection.current = true
-        lineAnimationPosition.current = paddingLineAnimation
+        lineAnimationPosition.current = gameConfig.PADDING_LINE_ANIMATION
       }
     }
 
@@ -154,12 +117,12 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
               }}
               onTouchStart={() => {
                 return console.log(`{
-              id: ${count.current++},
-              show: ${timeComponent - 50},
-              click: false,
-              positionLeft: ${index},
-              miss: false
-            },`)
+                  id: ${count.current++},
+                  show: ${timeComponent - 50},
+                  positionLeft: ${index},
+                  click: false,
+                  miss: false
+                },`)
               }}
             />
           ))}
@@ -171,26 +134,27 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
   return (
     <View style={styles.percentContainer}>
-      <GameHeader
-        startAnimated={startAnimated}
-        onChangeStartAnimated={onChangeStartAnimated}
-        headerHeightSize={gameConfig.HEADER_HEIGHT_SIZE}
-        onClickReset={onClickReset}
-        setTime={setTime}
-      />
+      {GameHeader({
+        startAnimated,
+        onChangeStartAnimated,
+        headerHeightSize: gameConfig.HEADER_HEIGHT_SIZE,
+        onClickReset,
+        setTime,
+      })}
 
       <View style={styles.gameField}>
-        {createMode && <CreateModeRender timeComponent={time} />}
+        {createMode && CreateModeRender({ timeComponent: time })}
 
-        {ObjectClickVisibility()}
+        {verifyRenderObjectClick({
+          showObjectRef,
+          time,
+          lineAnimationPosition,
+        })}
 
         <View style={[styles.line, animatedStyleCustom()]} />
       </View>
 
-      <GameFooter
-        footerHeightSize={gameConfig.FOOTER_HEIGHT_SIZE}
-        time={time}
-      />
+      {GameFooter({ footerHeightSize: gameConfig.FOOTER_HEIGHT_SIZE, time })}
     </View>
   )
 }

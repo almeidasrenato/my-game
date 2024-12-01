@@ -1,5 +1,5 @@
 import React from 'react'
-import { Dimensions, View, Text } from 'react-native'
+import { Dimensions, View, Text, Image } from 'react-native'
 
 const returnPxByPercent = (percent, totalValue) => {
   return totalValue * (percent / 100)
@@ -22,7 +22,6 @@ export default function CircleClick({
     }
 
     if (!item.click && item.miss) {
-      // color = 'pink'
       color = 'transparent'
     }
 
@@ -43,9 +42,6 @@ export default function CircleClick({
   }
 
   const actionClick = (lineAndCircle, itemId) => {
-    console.log('actionClick itemId ======>', itemId)
-    console.log('actionClick lineAndCircle ======>', lineAndCircle)
-
     if (lineAndCircle) {
       let newTeste = showObjectRef.map((itemT) => {
         if (itemT.id === itemId) {
@@ -60,7 +56,7 @@ export default function CircleClick({
   }
 
   const lineAndCircle = (positionLineByCircleClick, positionTopReturn) => {
-    //! Aqui verifica se a linha está no range campo clicavel ou não
+    //? Aqui verifica se a linha está no range campo clicavel ou não
     if (
       positionLineByCircleClick - CIRCLE_SIZE <= positionTopReturn &&
       positionLineByCircleClick >= positionTopReturn
@@ -168,7 +164,5 @@ export default function CircleClick({
         <></>
       </View>
     )
-
-    //!---------------------------
   })
 }

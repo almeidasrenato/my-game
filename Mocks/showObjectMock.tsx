@@ -6,23 +6,14 @@ type Range<
   : Range<N, [...Result, Result['length']]>
 
 export type ShowObject = {
-  id: number //! id
-  show: number //! time of show
-  click: boolean //! click
-  positionLeft: Range<101> //! positionLeft of showObject in percent from left side of screen (0-100)
-  miss: boolean //! miss
+  id: number //* id
+  show: number //* time of show
+  positionLeft: Range<101> //* positionLeft of showObject in percent from left side of screen (0-100)
+  click: boolean //* click
+  miss: boolean //* miss
 }
 
 export const showObjectArray: ShowObject[] = [
-  // {
-  //   id: 0,
-  //   show: 6000,
-  //   click: false,
-  //   positionLeft: 17,
-  //   miss: false,
-  // },
-  //!----
-
   {
     id: 0,
     show: 11931,
