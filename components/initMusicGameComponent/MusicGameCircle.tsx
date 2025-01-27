@@ -1,5 +1,6 @@
 import React from 'react'
 import { Dimensions, View, Text, Image } from 'react-native'
+import FastImage from '@d11/react-native-fast-image'
 
 const returnPxByPercent = (percent, totalValue) => {
   return totalValue * (percent / 100)
@@ -43,7 +44,7 @@ export default function CircleClick({
 
   const actionClick = (lineAndCircle, itemId) => {
     if (lineAndCircle) {
-      let newTeste = showObjectRef.map((itemT) => {
+      let newClickObject = showObjectRef.map((itemT) => {
         if (itemT.id === itemId) {
           itemT.click = true
           return { ...itemT }
@@ -51,7 +52,7 @@ export default function CircleClick({
         return { ...itemT }
       })
 
-      showObjectRef.current = newTeste
+      showObjectRef.current = newClickObject
     }
   }
 
@@ -161,7 +162,13 @@ export default function CircleClick({
         // }}
         style={circleStyle(positionTopReturn, item.positionLeft, item)}
       >
-        <></>
+        <View style={{}}>
+          <FastImage
+            style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
+            source={require('@/assets/imagesSequenceAnimation/circlePressAnimation/load/1.png')}
+            resizeMode={FastImage.resizeMode.contain}
+          />
+        </View>
       </View>
     )
   })

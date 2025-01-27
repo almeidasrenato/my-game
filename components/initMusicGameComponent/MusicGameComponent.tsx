@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback, memo } from 'react'
+import React, { useRef, useState, useEffect, useCallback, memo } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import GameHeader from './MusicGameHeader'
@@ -26,6 +26,8 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const lineAnimationPosition = useRef(gameConfig.PADDING_LINE_ANIMATION)
 
   useEffect(() => {}, [createMode])
+
+  useEffect(() => {}, [])
 
   const player = useAudioPlayer(
     require('@/assets/music/eu-me-rendo-vocal-livre.mp3')
