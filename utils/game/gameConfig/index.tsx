@@ -8,7 +8,7 @@ const returnPxByPercent = (percent, totalValue) => {
 const ANIMATION_LINE_TIME = 1000
 
 //* Sizes
-const CIRCLE_SIZE = PixelRatio.getPixelSizeForLayoutSize(28)
+const CIRCLE_SIZE = PixelRatio.getPixelSizeForLayoutSize(32)
 const SCREEN_HEIGHT_SIZE = Dimensions.get('screen').height
 const HEADER_HEIGHT_SIZE = PixelRatio.getPixelSizeForLayoutSize(14)
 const FOOTER_HEIGHT_SIZE = PixelRatio.getPixelSizeForLayoutSize(8)
@@ -18,6 +18,7 @@ const PADDING_LINE_ANIMATION = PixelRatio.getPixelSizeForLayoutSize(10)
 //* Colors
 const FIELD_BACKGROUND = '#253238'
 const GAME_BACKGROUND_COLOR = '#2b2732'
+// const GAME_BACKGROUND_COLOR = '#fff'
 const LINE_COLOR = '#8fbfb8'
 
 //* Calculations

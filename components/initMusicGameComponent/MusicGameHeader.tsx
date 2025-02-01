@@ -13,10 +13,8 @@ export default function GameHeader({
     setTime(0)
 
     if (startAnimated) {
-      // startAnimationFunction(true)
       onClickReset(true)
     } else {
-      // startAnimationFunction()
       onClickReset(false)
     }
 

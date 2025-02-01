@@ -5,13 +5,14 @@ export const verifyRenderObjectClick = ({
   showObjectRef,
   time,
   lineAnimationPosition,
+  preLoadImageRef,
 }) => {
   let returnObjectFilterCircleClick = showObjectRef.current.filter(
     (item) =>
       time >= item.show - gameConfig.ANIMATION_LINE_TIME &&
       time <= item.show + gameConfig.ANIMATION_LINE_TIME / 2
   )
-
+  //
   if (returnObjectFilterCircleClick.length > 0) {
     return (
       <CircleClick
@@ -22,6 +23,7 @@ export const verifyRenderObjectClick = ({
         CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
         returnObjectFilter={returnObjectFilterCircleClick}
         showObjectRef={showObjectRef.current}
+        preLoadImageRef={preLoadImageRef}
       />
     )
   }

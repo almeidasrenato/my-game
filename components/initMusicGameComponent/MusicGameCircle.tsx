@@ -1,6 +1,6 @@
 import React from 'react'
-import { Dimensions, View, Text, Image } from 'react-native'
-import FastImage from '@d11/react-native-fast-image'
+import { Dimensions, View, Text, Image, Pressable } from 'react-native'
+// import FastImage from '@d11/react-native-fast-image'
 
 const returnPxByPercent = (percent, totalValue) => {
   return totalValue * (percent / 100)
@@ -14,9 +14,11 @@ export default function CircleClick({
   CIRCLE_SIZE,
   returnObjectFilter,
   showObjectRef,
+  preLoadImageRef,
 }) {
   const circleStyle = (positionTop, positionLeft, item) => {
-    let color = '#f2f3f6'
+    // let color = '#f2f3f6'
+    let color = 'transparent'
 
     if (item.click) {
       color = 'transparent'
@@ -30,13 +32,13 @@ export default function CircleClick({
       width: CIRCLE_SIZE,
       height: CIRCLE_SIZE,
       backgroundColor: color,
-      position: 'absolute',
+      position: 'absolute' as const,
       left: returnPxByPercent(
         positionLeft,
         Dimensions.get('screen').width - CIRCLE_SIZE
       ),
       top: positionTop,
-      borderRadius: '500px',
+
       justifyContent: 'center',
       alignItems: 'center',
     }
@@ -79,7 +81,7 @@ export default function CircleClick({
 
     let verifyLinePositionX = item.show / AnimationLineTime
 
-    verifyLinePositionX = parseInt(verifyLinePositionX)
+    verifyLinePositionX = Math.floor(verifyLinePositionX)
 
     if (verifyLinePositionX % 2 != 0) {
       newGameFieldScreenHeightSize =
@@ -93,9 +95,7 @@ export default function CircleClick({
       positionTopReturn
     )
 
-    let tolerancePercent = 10 / 100
-
-    if (time >= item.show + tolerancePercent * AnimationLineTime) {
+    if (time >= item.show - AnimationLineTime + AnimationLineTime * 1.25) {
       let updateObjectRef = showObjectRef.map((itemT) => {
         if (itemT.id === item.id) {
           itemT.miss = true
@@ -145,6 +145,24 @@ export default function CircleClick({
       )
     }
 
+    // Calcula qual frame da animação deve ser mostrado
+    const totalFrames = 60 // número total de frames da animação
+
+    const timeUntilNote =
+      item.show - AnimationLineTime + AnimationLineTime * 1.25 - time
+
+    const frameIndex = Math.max(
+      0,
+      Math.min(
+        totalFrames - 1,
+        Math.floor((timeUntilNote / AnimationLineTime) * totalFrames)
+      )
+    )
+
+    // Inverte o índice do frame (25 -> 0 ao invés de 0 -> 25)
+    const reversedFrameIndex = totalFrames - 1 - frameIndex
+    // const reversedFrameIndex = frameIndex
+
     return (
       <View
         key={index}
@@ -154,21 +172,12 @@ export default function CircleClick({
 
           actionClick(lineAndCircleReturn, item.id)
         }}
-        // onTouchStart={() => {
-        //   console.log('onTouchStart')
-        // }}
-        // onTouchEnd={() => {
-        //   console.log('onTouchEnd')
-        // }}
         style={circleStyle(positionTopReturn, item.positionLeft, item)}
       >
-        <View style={{}}>
-          <FastImage
-            style={{ width: CIRCLE_SIZE, height: CIRCLE_SIZE }}
-            source={require('@/assets/imagesSequenceAnimation/circlePressAnimation/load/1.png')}
-            resizeMode={FastImage.resizeMode.contain}
-          />
-        </View>
+        {preLoadImageRef.current.circle.load[reversedFrameIndex]({
+          width: CIRCLE_SIZE,
+          height: CIRCLE_SIZE,
+        })}
       </View>
     )
   })
