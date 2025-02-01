@@ -167,7 +167,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   useEffect(() => {}, [])
 
   const player = useAudioPlayer(
-    require('@/assets/music/eu-me-rendo-vocal-livre.mp3')
+    require('@/assets/music/os-meus-labios-te-louvam.mp3')
   )
 
   async function playSound(pause: boolean) {
@@ -238,101 +238,78 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   const CreateModeRender = useCallback(
     ({ timeComponent }: { timeComponent: number }) => {
       const count = useRef(0)
-      const touchStartTime = useRef(0)
-      const touchStartX = useRef(0)
-      const currentIndex = useRef(0)
-      const dragPath = useRef<Array<{ positionLeft: number; show: number }>>([])
-      const dragInterval = useRef<NodeJS.Timer | null>(null)
+      const touchData = useRef(new Map())
 
       const handleTouchStart = (index: number, event: any) => {
-        touchStartTime.current = Date.now()
-        touchStartX.current = event.nativeEvent.pageX
-        currentIndex.current = index
-        dragPath.current = []
+        event.nativeEvent.touches.forEach((touch) => {
+          const touchId = touch.identifier
+
+          if (!touchData.current.has(touchId)) {
+            touchData.current.set(touchId, {
+              startTime: Date.now(),
+              startX: touch.pageX,
+              index: index,
+              dragPath: [],
+            })
+
+            // console.log(`Toque iniciado - ID: ${touchId}, Index: ${index}`)
+          }
+        })
       }
 
       const handleTouchMove = (event: any) => {
-        const currentX = event.nativeEvent.pageX
-        // Calcula a posição atual limitada entre 0 e 99
-        const currentPositionLeft = Math.min(
-          Math.max(
-            Math.floor(currentX / (event.nativeEvent.target.offsetWidth / 100)),
-            0
-          ),
-          99
-        )
+        event.nativeEvent.changedTouches.forEach((touch) => {
+          const data = touchData.current.get(touch.identifier)
+          if (data && data.dragPath.length === 0) {
+            data.dragPath.push({
+              positionLeft: null,
+              show: timeComponent - 50,
+            })
 
-        // Adiciona imediatamente a primeira posição
-        if (dragPath.current.length === 0) {
-          dragPath.current.push({
-            positionLeft: currentPositionLeft,
-            show: timeComponent - 50,
-          })
-        }
-
-        // Atualiza ou cria o intervalo
-        if (!dragInterval.current) {
-          dragInterval.current = setInterval(() => {
-            // Só adiciona se a posição for diferente da última registrada
-            const lastPosition = dragPath.current[dragPath.current.length - 1]
-            if (lastPosition.positionLeft !== currentPositionLeft) {
-              dragPath.current.push({
-                positionLeft: currentPositionLeft,
-                show: timeComponent - 50,
-              })
-            }
-          }, 300)
-        }
+            // console.log(
+            //   `Toque movido - ID: ${touch.identifier}, Index: ${data.index}`
+            // )
+          }
+        })
       }
 
       const handleTouchEnd = (event: any) => {
-        if (dragInterval.current) {
-          clearInterval(dragInterval.current as NodeJS.Timeout)
-          dragInterval.current = null
-        }
+        event.nativeEvent.changedTouches.forEach((touch) => {
+          const data = touchData.current.get(touch.identifier)
+          if (!data) return
 
-        const touchDuration = Date.now() - touchStartTime.current
-        const touchEndX = event.nativeEvent.pageX
-        const deltaX = touchEndX - touchStartX.current
+          const touchDuration = Date.now() - data.startTime
+          const deltaX = touch.pageX - data.startX
 
-        let type = 'press'
-        let direction = null
-        let path = null
+          let type = 'press'
+          let direction = null
+          let path = null
 
-        // Movimento rápido para os lados (slide)
-        if (Math.abs(deltaX) > 20 && touchDuration < 300) {
-          type = 'slide'
-          direction = deltaX > 0 ? 'right' : 'left'
-        }
-        // Movimento longo mantendo pressionado (drag)
-        else if (Math.abs(deltaX) > 20 && touchDuration >= 300) {
-          type = 'drag'
-          // Só define o path se houver dados capturados
-          path = dragPath.current.length > 0 ? [...dragPath.current] : null
-        }
-        // Toque longo sem movimento significativo (hold)
-        else if (touchDuration > 300) {
-          type = 'hold'
-        }
-        // Toque rápido sem movimento (press)
-        else {
-          type = 'press'
-        }
+          if (Math.abs(deltaX) > 20 && touchDuration < 300) {
+            type = 'slide'
+            direction = deltaX > 0 ? 'right' : 'left'
+          } else if (Math.abs(deltaX) > 20 && touchDuration >= 300) {
+            type = 'drag'
+            path = data.dragPath.length > 0 ? [...data.dragPath] : null
+          } else if (touchDuration > 300) {
+            type = 'hold'
+          }
 
-        // Limpa o dragPath após usar
-        dragPath.current = []
+          console.log(`{
+            id: ${count.current++},
+            type: '${type}',
+            direction: ${direction ? `'${direction}'` : 'null'},
+            duration: ${touchDuration},
+            show: ${timeComponent - 50},
+            positionLeft: ${data.index},
+            path: ${path ? JSON.stringify(path) : 'null'},
+            click: false,
+            miss: false
+            },
+          `)
 
-        console.log(`{
-          id: ${count.current++},
-          type: '${type}',
-          direction: ${direction ? `'${direction}'` : 'null'},
-          duration: ${touchDuration},
-          show: ${timeComponent - 50},
-          positionLeft: ${currentIndex.current},
-          path: ${path ? JSON.stringify(path) : 'null'},
-          click: false,
-          miss: false
-        },`)
+          touchData.current.delete(touch.identifier)
+        })
       }
 
       return (
@@ -343,14 +320,16 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
             width: '100%',
             flexDirection: 'row',
           }}
+          onTouchStart={(e) => e.stopPropagation()}
         >
-          {Array.from({ length: 100 }).map((item, index) => (
+          {Array.from({ length: 100 }).map((_, index) => (
             <View
               key={index}
               style={{
                 height: gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE,
                 width: '1%',
-                backgroundColor: 'blue',
+                backgroundColor:
+                  index % 8 === 0 ? 'rgba(0,0,255,0.5)' : 'rgba(0,0,255,0.2)',
               }}
               onTouchStart={(e) => handleTouchStart(index, e)}
               onTouchMove={handleTouchMove}
