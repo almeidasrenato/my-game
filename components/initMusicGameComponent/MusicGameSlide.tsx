@@ -16,6 +16,23 @@ export default function SlideClick({
   showObjectRef,
   preLoadImageRef,
 }) {
+  const [touchStart, setTouchStart] = React.useState({ x: 0, y: 0 })
+
+  const handleSwipe = (endX, endY, itemId, lineAndCircleReturn) => {
+    const diffX = endX - touchStart.x
+    const diffY = endY - touchStart.y
+
+    const SWIPE_THRESHOLD = 50
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+      if (Math.abs(diffX) > SWIPE_THRESHOLD) {
+        const direction = diffX > 0 ? 'direita' : 'esquerda'
+        console.log(`Usuário deslizou para ${direction}`)
+        actionClick(lineAndCircleReturn, itemId)
+      }
+    }
+  }
+
   const circleStyle = (positionTop, positionLeft, item) => {
     let color = 'red'
     // let color = 'transparent'
@@ -145,29 +162,24 @@ export default function SlideClick({
       )
     }
 
-    // const totalFrames = 60
-
-    // const timeUntilNote =
-    //   item.show - AnimationLineTime + AnimationLineTime * 1.25 - time
-
-    // const frameIndex = Math.max(
-    //   0,
-    //   Math.min(
-    //     totalFrames - 1,
-    //     Math.floor((timeUntilNote / AnimationLineTime) * totalFrames)
-    //   )
-    // )
-
-    // const reversedFrameIndex = totalFrames - 1 - frameIndex
-
     return (
       <View
         key={index}
-        onTouchStart={() => {
-          if (item.click) return
-          if (item.miss) return
-
-          actionClick(lineAndCircleReturn, item.id)
+        onTouchStart={(e) => {
+          if (item.click || item.miss) return
+          setTouchStart({
+            x: e.nativeEvent.pageX,
+            y: e.nativeEvent.pageY,
+          })
+        }}
+        onTouchEnd={(e) => {
+          if (item.click || item.miss) return
+          handleSwipe(
+            e.nativeEvent.pageX,
+            e.nativeEvent.pageY,
+            item.id,
+            lineAndCircleReturn
+          )
         }}
         style={circleStyle(positionTopReturn, item.positionLeft, item)}
       >

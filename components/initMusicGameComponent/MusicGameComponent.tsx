@@ -249,7 +249,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
           if (!touch) return
 
-          const touchId = index // Usando o index como identificador único
+          const touchId = index
 
           switch (type) {
             case 'start':
@@ -258,12 +258,22 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
                 startX: touch.pageX,
                 index,
                 dragPath: [],
+                lastX: touch.pageX,
+                hasMoved: false,
               })
               break
 
             case 'move':
               const moveData = touchData.current.get(touchId)
-              if (moveData && moveData.dragPath.length === 0) {
+              if (!moveData) return
+
+              const currentDeltaX = Math.abs(touch.pageX - moveData.lastX)
+              if (currentDeltaX > 5) {
+                moveData.hasMoved = true
+              }
+              moveData.lastX = touch.pageX
+
+              if (moveData.dragPath.length === 0) {
                 moveData.dragPath.push({
                   positionLeft: moveData.index,
                   show: timeComponent - 50,
@@ -284,7 +294,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
                 path: null,
               }
 
-              if (Math.abs(deltaX) > 20) {
+              if (data.hasMoved && Math.abs(deltaX) > 20) {
                 if (touchDuration < 300) {
                   gestureInfo.type = 'slide'
                   gestureInfo.direction = deltaX > 0 ? 'right' : 'left'

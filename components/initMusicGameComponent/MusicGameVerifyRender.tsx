@@ -23,46 +23,46 @@ export const verifyRenderObjectClick = ({
       (item) => item.type === 'slide'
     )
 
-    return (
-      <CircleClick
-        animeLinePosition={lineAnimationPosition.current}
-        gameFieldScreenHeightSize={gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE}
-        AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
-        time={time}
-        CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
-        returnObjectFilter={returnObjectFilterCircleClick}
-        showObjectRef={showObjectRef.current}
-        preLoadImageRef={preLoadImageRef}
-      />
-    )
+    // return (
+    //   <CircleClick
+    //     animeLinePosition={lineAnimationPosition.current}
+    //     gameFieldScreenHeightSize={gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE}
+    //     AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
+    //     time={time}
+    //     CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
+    //     returnObjectFilter={returnObjectFilterCircleClick}
+    //     showObjectRef={showObjectRef.current}
+    //     preLoadImageRef={preLoadImageRef}
+    //   />
+    // )
 
     return (
       <>
-        {/* {filterTypePress.length > 0 && (
+        {filterTypePress.length > 0 && (
           <CircleClick
             animeLinePosition={lineAnimationPosition.current}
             gameFieldScreenHeightSize={gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE}
             AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
             time={time}
             CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
-            returnObjectFilter={returnObjectFilterCircleClick}
+            returnObjectFilter={filterTypePress}
             showObjectRef={showObjectRef.current}
             preLoadImageRef={preLoadImageRef}
           />
-        )} */}
+        )}
 
-        {/* {filterTypeSlide.length > 0 && (
+        {filterTypeSlide.length > 0 && (
           <SlideClick
             animeLinePosition={lineAnimationPosition.current}
             gameFieldScreenHeightSize={gameConfig.GAME_FIELD_SCREEN_HEIGHT_SIZE}
             AnimationLineTime={gameConfig.ANIMATION_LINE_TIME}
             time={time}
             CIRCLE_SIZE={gameConfig.CIRCLE_SIZE}
-            returnObjectFilter={returnObjectFilterCircleClick}
+            returnObjectFilter={filterTypeSlide}
             showObjectRef={showObjectRef.current}
             preLoadImageRef={preLoadImageRef}
           />
-        )} */}
+        )}
       </>
     )
 
