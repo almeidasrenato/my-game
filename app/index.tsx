@@ -6,7 +6,7 @@ import { MusicGameComponent } from '@/components/initMusicGameComponent/MusicGam
 export default function Page() {
   return (
     <View style={styles.container}>
-      <MusicGameComponent createMode={false} />
+      <MusicGameComponent createMode={true} />
     </View>
   )
 }
