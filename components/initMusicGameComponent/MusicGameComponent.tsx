@@ -241,62 +241,63 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
       const touchData = useRef(new Map())
 
       const handleTouch = useCallback(
-        (type: 'start' | 'move' | 'end', index?: number, event: any) => {
-          const touches =
-            type === 'end'
-              ? event.nativeEvent.changedTouches
-              : event.nativeEvent.touches
+        (type: 'start' | 'move' | 'end', index: number, event: any) => {
+          event.stopPropagation()
+          const touch =
+            event.nativeEvent.touches?.[0] ||
+            event.nativeEvent.changedTouches?.[0]
 
-          touches.forEach((touch: any) => {
-            const touchId = touch.identifier
+          if (!touch) return
 
-            switch (type) {
-              case 'start':
-                touchData.current.set(touchId, {
-                  startTime: Date.now(),
-                  startX: touch.pageX,
-                  index,
-                  dragPath: [],
+          const touchId = index // Usando o index como identificador único
+
+          switch (type) {
+            case 'start':
+              touchData.current.set(touchId, {
+                startTime: Date.now(),
+                startX: touch.pageX,
+                index,
+                dragPath: [],
+              })
+              break
+
+            case 'move':
+              const moveData = touchData.current.get(touchId)
+              if (moveData && moveData.dragPath.length === 0) {
+                moveData.dragPath.push({
+                  positionLeft: moveData.index,
+                  show: timeComponent - 50,
                 })
-                break
+              }
+              break
 
-              case 'move':
-                const moveData = touchData.current.get(touchId)
-                if (moveData?.dragPath.length === 0) {
-                  moveData.dragPath.push({
-                    positionLeft: null,
-                    show: timeComponent - 50,
-                  })
+            case 'end':
+              const data = touchData.current.get(touchId)
+              if (!data) return
+
+              const touchDuration = Date.now() - data.startTime
+              const deltaX = touch.pageX - data.startX
+
+              const gestureInfo = {
+                type: 'press',
+                direction: null,
+                path: null,
+              }
+
+              if (Math.abs(deltaX) > 20) {
+                if (touchDuration < 300) {
+                  gestureInfo.type = 'slide'
+                  gestureInfo.direction = deltaX > 0 ? 'right' : 'left'
+                } else {
+                  gestureInfo.type = 'drag'
+                  gestureInfo.path =
+                    data.dragPath.length > 0 ? [...data.dragPath] : null
                 }
-                break
+              } else if (touchDuration > 300) {
+                gestureInfo.type = 'hold'
+              }
 
-              case 'end':
-                const data = touchData.current.get(touchId)
-                if (!data) return
-
-                const touchDuration = Date.now() - data.startTime
-                const deltaX = touch.pageX - data.startX
-
-                const gestureInfo = {
-                  type: 'press',
-                  direction: null,
-                  path: null,
-                }
-
-                if (Math.abs(deltaX) > 20) {
-                  if (touchDuration < 300) {
-                    gestureInfo.type = 'slide'
-                    gestureInfo.direction = deltaX > 0 ? 'right' : 'left'
-                  } else {
-                    gestureInfo.type = 'drag'
-                    gestureInfo.path =
-                      data.dragPath.length > 0 ? [...data.dragPath] : null
-                  }
-                } else if (touchDuration > 300) {
-                  gestureInfo.type = 'hold'
-                }
-
-                console.log(`{
+              console.log(`{
                 id: ${count.current++},
                 type: '${gestureInfo.type}',
                 direction: ${
@@ -312,10 +313,9 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
                 miss: false
               },`)
 
-                touchData.current.delete(touchId)
-                break
-            }
-          })
+              touchData.current.delete(touchId)
+              break
+          }
         },
         [timeComponent]
       )
@@ -328,7 +328,6 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
             width: '100%',
             flexDirection: 'row',
           }}
-          onTouchStart={(e) => e.stopPropagation()}
         >
           {Array.from({ length: 100 }).map((_, index) => (
             <View
@@ -340,8 +339,8 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
                   index % 8 === 0 ? 'rgba(0,0,255,0.5)' : 'rgba(0,0,255,0.2)',
               }}
               onTouchStart={(e) => handleTouch('start', index, e)}
-              onTouchMove={(e) => handleTouch('move', undefined, e)}
-              onTouchEnd={(e) => handleTouch('end', undefined, e)}
+              onTouchMove={(e) => handleTouch('move', index, e)}
+              onTouchEnd={(e) => handleTouch('end', index, e)}
             />
           ))}
         </View>
