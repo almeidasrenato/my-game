@@ -34,8 +34,8 @@ export default function SlideClick({
   }
 
   const circleStyle = (positionTop, positionLeft, item) => {
-    let color = 'red'
-    // let color = 'transparent'
+    // let color = 'red'
+    let color = 'transparent'
 
     if (item.click) {
       color = 'transparent'
@@ -162,6 +162,21 @@ export default function SlideClick({
       )
     }
 
+    const totalFrames = 60 // número total de frames da animação
+
+    const timeUntilNote =
+      item.show - AnimationLineTime + AnimationLineTime * 1.25 - time
+
+    const frameIndex = Math.max(
+      0,
+      Math.min(
+        totalFrames - 1,
+        Math.floor((timeUntilNote / AnimationLineTime) * totalFrames)
+      )
+    )
+
+    const reversedFrameIndex = totalFrames - 1 - frameIndex
+
     return (
       <View
         key={index}
@@ -183,10 +198,10 @@ export default function SlideClick({
         }}
         style={circleStyle(positionTopReturn, item.positionLeft, item)}
       >
-        {/* {preLoadImageRef.current.circle.load[reversedFrameIndex]({
-          width: CIRCLE_SIZE,
-          height: CIRCLE_SIZE,
-        })} */}
+        {preLoadImageRef.current.slide.load[reversedFrameIndex]({
+          width: CIRCLE_SIZE * 2,
+          height: CIRCLE_SIZE * 2,
+        })}
       </View>
     )
   })

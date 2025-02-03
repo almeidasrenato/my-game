@@ -174,7 +174,7 @@ export default function CircleClick({
         }}
         style={circleStyle(positionTopReturn, item.positionLeft, item)}
       >
-        {preLoadImageRef.current.circle.load[reversedFrameIndex]({
+        {preLoadImageRef.current.press.load[reversedFrameIndex]({
           width: CIRCLE_SIZE,
           height: CIRCLE_SIZE,
         })}
