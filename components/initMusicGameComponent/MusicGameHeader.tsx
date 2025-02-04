@@ -1,13 +1,14 @@
 import React from 'react'
-import { View, PixelRatio, Pressable } from 'react-native'
+import { View, PixelRatio, Pressable, Text } from 'react-native'
 
 export default function GameHeader({
   startAnimated,
   onChangeStartAnimated,
-  // startAnimationFunction,
   headerHeightSize,
   onClickReset,
   setTime,
+  createMode,
+  onChangeCreateMode,
 }) {
   const buttonPause = () => {
     setTime(0)
@@ -26,7 +27,8 @@ export default function GameHeader({
       style={{
         height: headerHeightSize,
         width: '100%',
-        justifyContent: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
       }}
     >
       <Pressable
@@ -40,6 +42,23 @@ export default function GameHeader({
           buttonPause()
         }}
       ></Pressable>
+
+      <Pressable
+        style={{
+          height: PixelRatio.getPixelSizeForLayoutSize(8),
+          width: PixelRatio.getPixelSizeForLayoutSize(24),
+          backgroundColor: 'blue',
+          left: PixelRatio.getPixelSizeForLayoutSize(32),
+
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+        onPress={() => {
+          onChangeCreateMode((currentValue: boolean) => !currentValue)
+        }}
+      >
+        <Text>{createMode ? 'EditMode' : 'PlayMode'}</Text>
+      </Pressable>
     </View>
   )
 }

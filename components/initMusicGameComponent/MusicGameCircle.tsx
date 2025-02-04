@@ -1,6 +1,5 @@
 import React from 'react'
 import { Dimensions, View, Text, Image, Pressable } from 'react-native'
-// import FastImage from '@d11/react-native-fast-image'
 
 const returnPxByPercent = (percent, totalValue) => {
   return totalValue * (percent / 100)
@@ -38,9 +37,8 @@ export default function CircleClick({
         Dimensions.get('screen').width - CIRCLE_SIZE
       ),
       top: positionTop,
-
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: 'center' as const,
+      alignItems: 'center' as const,
     }
   }
 
@@ -145,8 +143,7 @@ export default function CircleClick({
       )
     }
 
-    // Calcula qual frame da animação deve ser mostrado
-    const totalFrames = 60 // número total de frames da animação
+    const totalFrames = 60
 
     const timeUntilNote =
       item.show - AnimationLineTime + AnimationLineTime * 1.25 - time
@@ -159,9 +156,7 @@ export default function CircleClick({
       )
     )
 
-    // Inverte o índice do frame (25 -> 0 ao invés de 0 -> 25)
     const reversedFrameIndex = totalFrames - 1 - frameIndex
-    // const reversedFrameIndex = frameIndex
 
     return (
       <View

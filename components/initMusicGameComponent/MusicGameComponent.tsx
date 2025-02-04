@@ -13,106 +13,113 @@ import { verifyRenderObjectClick } from './MusicGameVerifyRender'
 
 type MusicGameProps = {
   createMode: boolean
+  onChangeCreateMode: (value: boolean) => void
 }
 
-export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
-  const showObjectRef = useRef(showObjectArray)
-  const preLoadImageRef = useRef(pressImports.preLoadImageRef)
+interface TouchData {
+  startTime: number
+  startX: number
+  index: number
+  dragPath: Array<{ positionLeft: number; show: number }>
+  lastX: number
+  hasMoved: boolean
+}
+
+export const MusicGameComponent = ({
+  createMode,
+  onChangeCreateMode,
+}: MusicGameProps) => {
+  const gameRefs = {
+    showObjectRef: useRef(showObjectArray),
+    preLoadImageRef: useRef(pressImports.preLoadImageRef),
+    timerRef: useRef(null),
+    downLineDirection: useRef<boolean>(true),
+    lineAnimationPosition: useRef(gameConfig.PADDING_LINE_ANIMATION),
+  }
 
   const [startAnimated, onChangeStartAnimated] = useState<boolean>(false)
   const [time, setTime] = useState<number>(0)
 
-  const Ref = useRef(null)
-
-  const downLineDirection = useRef<boolean>(true)
-  const lineAnimationPosition = useRef(gameConfig.PADDING_LINE_ANIMATION)
-
-  const enabledLineCollisionTop = useRef<boolean>(false)
-  const enabledLineCollisionBottom = useRef<boolean>(false)
-
-  const enabledLineCollisionTopFrame = useRef<number>(1)
-  const enabledLineCollisionBottomFrame = useRef<number>(1)
-
-  const heightLineCollisionTop = useRef<number>(6)
-  const heightLineCollisionBottom = useRef<number>(6)
-
-  useEffect(() => {}, [createMode])
-
-  useEffect(() => {}, [])
+  const collisionRefs = {
+    top: {
+      enabled: useRef<boolean>(false),
+      frame: useRef<number>(1),
+      height: useRef<number>(6),
+    },
+    bottom: {
+      enabled: useRef<boolean>(false),
+      frame: useRef<number>(1),
+      height: useRef<number>(6),
+    },
+  }
 
   const player = useAudioPlayer(
-    require('@/assets/music/os-meus-labios-te-louvam.mp3')
+    require('@/assets/music/eu-me-rendo-vocal-livre.mp3')
   )
 
-  async function playSound(pause: boolean) {
-    if (!pause) {
-      return player.pause()
-    }
-    player.play()
-  }
+  const audioControls = {
+    playSound: async (pause: boolean) => {
+      if (!pause) return player.pause()
+      player.play()
+    },
 
-  const onClickReset = (continueTimer: boolean) => {
-    if (continueTimer) {
-      clearInterval(Ref.current)
-      playSound(false)
-      setTime(0)
-      return
-    }
-
-    playSound(true)
-
-    const id = setInterval(() => {
-      setTime(Math.round(player.currentTime * 1000))
-    }, 16.6666667)
-
-    Ref.current = id
-  }
-
-  const verifyLinePositionTop = () => {
-    const percorredRange =
-      gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT -
-      gameConfig.PADDING_LINE_ANIMATION
-
-    const calcMoveLine =
-      percorredRange / (59.9999999 * (gameConfig.ANIMATION_LINE_TIME / 1000))
-
-    const ciclo = gameConfig.ANIMATION_LINE_TIME * 2
-    const metadeCiclo = ciclo / 2
-
-    if (downLineDirection.current) {
-      lineAnimationPosition.current += calcMoveLine
-
-      if (time % ciclo >= metadeCiclo) {
-        downLineDirection.current = false
-        lineAnimationPosition.current =
-          gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT
-
-        enabledLineCollisionBottom.current = true
+    onClickReset: (continueTimer: boolean) => {
+      if (continueTimer) {
+        clearInterval(gameRefs.timerRef.current)
+        player.pause()
+        player.replace(require('@/assets/music/eu-me-rendo-vocal-livre.mp3'))
+        setTime(0)
+        return
       }
-    } else {
-      lineAnimationPosition.current -= calcMoveLine
 
-      if (time % ciclo < metadeCiclo) {
-        downLineDirection.current = true
-        lineAnimationPosition.current = gameConfig.PADDING_LINE_ANIMATION
-
-        enabledLineCollisionTop.current = true
-      }
-    }
-
-    return lineAnimationPosition.current
+      audioControls.playSound(true)
+      const id = setInterval(() => {
+        setTime(Math.round(player.currentTime * 1000))
+      }, 16.6666667)
+      gameRefs.timerRef.current = id
+    },
   }
 
-  const animatedStyleCustom = () => {
-    return {
-      top: verifyLinePositionTop(),
-    }
+  const lineAnimation = {
+    verifyLinePositionTop: () => {
+      const percorredRange =
+        gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT -
+        gameConfig.PADDING_LINE_ANIMATION
+      const calcMoveLine =
+        percorredRange / (59.9999999 * (gameConfig.ANIMATION_LINE_TIME / 1000))
+      const ciclo = gameConfig.ANIMATION_LINE_TIME * 2
+      const metadeCiclo = ciclo / 2
+
+      if (gameRefs.downLineDirection.current) {
+        gameRefs.lineAnimationPosition.current += calcMoveLine
+        if (time % ciclo >= metadeCiclo) {
+          gameRefs.downLineDirection.current = false
+          gameRefs.lineAnimationPosition.current =
+            gameConfig.ANIME_LINE_POSITION_MAX_HEIGHT
+          collisionRefs.bottom.enabled.current = true
+        }
+      } else {
+        gameRefs.lineAnimationPosition.current -= calcMoveLine
+        if (time % ciclo < metadeCiclo) {
+          gameRefs.downLineDirection.current = true
+          gameRefs.lineAnimationPosition.current =
+            gameConfig.PADDING_LINE_ANIMATION
+          collisionRefs.top.enabled.current = true
+        }
+      }
+
+      return gameRefs.lineAnimationPosition.current
+    },
+
+    getAnimatedStyle: () => ({
+      top: lineAnimation.verifyLinePositionTop(),
+    }),
   }
 
   const CreateModeRender = useCallback(
     ({ timeComponent }: { timeComponent: number }) => {
       const count = useRef(0)
-      const touchData = useRef(new Map())
+      const touchData = useRef(new Map<number, TouchData>())
 
       const handleTouch = useCallback(
         (type: 'start' | 'move' | 'end', index: number, event: any) => {
@@ -234,26 +241,18 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
   )
 
   const RenderLineCollision = ({ isTop }: { isTop: boolean }) => {
-    const enabledCollision = isTop
-      ? enabledLineCollisionTop
-      : enabledLineCollisionBottom
-    const collisionFrame = isTop
-      ? enabledLineCollisionTopFrame
-      : enabledLineCollisionBottomFrame
-    const heightCollision = isTop
-      ? heightLineCollisionTop
-      : heightLineCollisionBottom
+    const collision = isTop ? collisionRefs.top : collisionRefs.bottom
 
-    if (enabledCollision.current && collisionFrame.current <= 10) {
-      if (collisionFrame.current <= 5) {
-        heightCollision.current += 2.4
-      } else if (collisionFrame.current <= 10) {
-        heightCollision.current -= 2.4
+    if (collision.enabled.current && collision.frame.current <= 10) {
+      if (collision.frame.current <= 5) {
+        collision.height.current += 2.4
+      } else if (collision.frame.current <= 10) {
+        collision.height.current -= 2.4
       }
-      collisionFrame.current++
-    } else if (enabledCollision.current) {
-      enabledCollision.current = false
-      collisionFrame.current = 1
+      collision.frame.current++
+    } else if (collision.enabled.current) {
+      collision.enabled.current = false
+      collision.frame.current = 1
     }
 
     return (
@@ -266,7 +265,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
           justifyContent: 'space-between',
           paddingHorizontal: 20,
           [isTop ? 'top' : 'bottom']:
-            0 - ((isTop ? 1 : -1) * heightCollision.current) / 2,
+            0 - ((isTop ? 1 : -1) * collision.height.current) / 2,
         }}
       >
         {Array.from({ length: isTop ? 12 : 10 }).map((_, index) => (
@@ -274,7 +273,7 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
             key={index}
             style={{
               [isTop ? 'top' : 'bottom']: isTop ? 29 : 23,
-              height: heightCollision.current,
+              height: collision.height.current,
               width: 2,
               backgroundColor: gameConfig.LINE_COLOR,
               opacity: 0.4,
@@ -287,32 +286,37 @@ export const MusicGameComponent = ({ createMode }: MusicGameProps) => {
 
   return (
     <View style={styles.percentContainer}>
-      {GameHeader({
-        startAnimated,
-        onChangeStartAnimated,
-        headerHeightSize: gameConfig.HEADER_HEIGHT_SIZE,
-        onClickReset,
-        setTime,
-      })}
+      <GameHeader
+        startAnimated={startAnimated}
+        onChangeStartAnimated={onChangeStartAnimated}
+        headerHeightSize={gameConfig.HEADER_HEIGHT_SIZE}
+        onClickReset={audioControls.onClickReset}
+        setTime={setTime}
+        createMode={createMode}
+        onChangeCreateMode={onChangeCreateMode}
+      />
 
       <View style={styles.gameField}>
         <RenderLineCollision isTop={true} />
 
-        {createMode && CreateModeRender({ timeComponent: time })}
+        {createMode && <CreateModeRender timeComponent={time} />}
 
         {verifyRenderObjectClick({
-          showObjectRef,
+          showObjectRef: gameRefs.showObjectRef,
           time,
-          lineAnimationPosition,
-          preLoadImageRef,
+          lineAnimationPosition: gameRefs.lineAnimationPosition,
+          preLoadImageRef: gameRefs.preLoadImageRef,
         })}
 
-        <View style={[styles.line, animatedStyleCustom()]} />
+        <View style={[styles.line, lineAnimation.getAnimatedStyle()]} />
 
         <RenderLineCollision isTop={false} />
       </View>
 
-      {GameFooter({ footerHeightSize: gameConfig.FOOTER_HEIGHT_SIZE, time })}
+      <GameFooter
+        footerHeightSize={gameConfig.FOOTER_HEIGHT_SIZE}
+        time={time}
+      />
     </View>
   )
 }
